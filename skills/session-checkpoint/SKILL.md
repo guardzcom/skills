@@ -1,0 +1,197 @@
+---
+name: session-checkpoint
+description: >-
+  Save and resume named session checkpoints to preserve progress across Claude
+  Code sessions. Tracks accomplishments, failed approaches, and modified files.
+  Git-aware with branch auto-naming. Recommends /clear or /compact based on
+  session type. Triggers on: "save checkpoint", "checkpoint", "continue",
+  "resume", "resume work", "save my progress", "clear checkpoint",
+  "clear all checkpoints". IMPORTANT: When the user says bare "continue" or
+  "resume" at session start and MEMORY.md lists active checkpoints, always
+  invoke this skill.
+---
+
+# Session Checkpoint
+
+## Commands
+
+- **Save:** "save checkpoint {name}", "save checkpoint" (defaults to branch name)
+- **Resume:** "continue", "continue {name}", "resume" (auto-select if one checkpoint, list if many)
+- **Cleanup:** "clear checkpoint {name}", "clear all checkpoints"
+
+---
+
+## Save Procedure
+
+### 1. Determine Name
+
+If user gave a name, use it (lowercase, sanitize: replace `/` with `-`).
+If no name, derive from branch:
+
+```bash
+git branch --show-current
+```
+
+Sanitize: lowercase, replace `/` with `-`, strip leading `-`.
+
+### 2. Locate Memory Directory
+
+Find the auto memory directory path from the system prompt line:
+`You have a persistent auto memory directory at <path>`
+
+### 3. Gather State
+
+Run in a single bash call:
+
+```bash
+git branch --show-current && git status --short | head -10 && date '+%Y-%m-%d %H:%M'
+```
+
+From conversation context, determine:
+- What was accomplished this session
+- What failed or was abandoned (and why)
+- Where work left off (only what was explicitly discussed, don't infer next steps)
+- Which files were modified
+
+### 4. Find Active Plan
+
+Check if a plan file was referenced in conversation context. If found, read it to get step N of M. If none referenced, skip — don't guess.
+
+### 5. Write Checkpoint File
+
+If `checkpoint-{name}.md` already exists, use `AskUserQuestion` to confirm — show the existing checkpoint's **Saved** date and **Left Off** summary, with options: "Overwrite" / "Different name" (user provides new name via "Other"). If they choose a different name, continue from this step with the new name.
+
+Write `<memory_dir>/checkpoint-{name}.md`:
+
+```markdown
+# Checkpoint: {name}
+
+- **Branch:** `{branch}`
+- **Saved:** {YYYY-MM-DD HH:MM}
+- **Plan:** `~/.claude/plans/{file}` (step N of M)
+
+## Left Off
+{1-3 lines describing where work stopped}
+
+## Done This Session
+- {accomplishments}
+
+## Failed Approaches
+- {what + why — or "None"}
+
+## Modified Files
+- {list}
+```
+
+Omit the **Plan:** line if no plan file exists.
+
+### 6. Update MEMORY.md Index
+
+Read MEMORY.md. Find the `## Active Checkpoints` section.
+
+- If checkpoint name already in index: update its line.
+- If not: add a new bullet.
+- If no `## Active Checkpoints` section exists: insert it after the first `#` heading. If MEMORY.md doesn't exist, create it with `# Project Memory` as the heading.
+
+Bullet format:
+```
+- **{name}** ({branch}, {Mon DD}) — {one-line summary}
+```
+
+Keep the `Resume any: \`continue\` or \`continue {name}\`` line after the bullets.
+
+Do NOT touch any other sections in MEMORY.md.
+
+### 7. Smart Output
+
+Keep output minimal — this often runs near end of context window. No explanations, just confirmation + question.
+
+Always save the checkpoint file (it's insurance if they `/clear` later). Output one line:
+
+```
+Checkpoint "{name}" saved -> checkpoint-{name}.md
+```
+
+Then use `AskUserQuestion` with options: "/clear", "/compact", "Done for now". Put the recommended option first:
+- **Plan referenced in context → recommend /clear** (context is disposable)
+- **No plan → recommend /compact** (context has unique value)
+
+Include the ready-to-run command in each option's description (`/compact {focus guidance}`, `/clear` then `continue {name}`). After the user picks, output the exact command prefixed with `Run:`.
+
+---
+
+## Resume Procedure
+
+### 1. Determine Name
+
+If user gave a name, use it.
+If no name given:
+- List `checkpoint-*.md` files in memory directory
+- If exactly one: use it automatically
+- If multiple: use `AskUserQuestion` with checkpoint names as options (include branch and date in each option's description)
+- If none: report "No saved checkpoints found." and stop
+
+### 2. Read Checkpoint File
+
+Read `<memory_dir>/checkpoint-{name}.md`.
+If file missing: remove the orphaned bullet from MEMORY.md's `## Active Checkpoints`, report "Checkpoint file missing (cleaned up stale entry)", and stop.
+
+### 3. Check Branch
+
+```bash
+git branch --show-current
+```
+
+If current branch differs from checkpoint's branch, warn:
+```
+Warning: You're on `{current}` but checkpoint was saved on `{saved}`. Switch with: git checkout {saved}
+```
+
+Continue regardless — user decides.
+
+### 4. Load Plan
+
+If checkpoint references a plan file, read it.
+
+### 5. Present and Begin
+
+Output the checkpoint summary and last context. If **Failed Approaches** is non-empty, include them:
+```
+⚠ Previously failed: {approach} — {why}
+```
+
+### 6. Auto-Clear
+
+The checkpoint is now consumed — context is live. Delete the checkpoint file and remove its bullet from MEMORY.md's `## Active Checkpoints` (same as Cleanup steps 1-2). If no bullets remain, remove the entire section.
+
+Do NOT mention the cleanup to the user. They see only the summary from step 5, then wait for their direction.
+
+---
+
+## Cleanup Procedure
+
+### 1. Delete File
+
+Remove the checkpoint file via Bash:
+```bash
+rm <memory_dir>/checkpoint-{name}.md
+```
+
+### 2. Update MEMORY.md
+
+Remove the bullet for `{name}` from `## Active Checkpoints`.
+If no bullets remain, remove the entire section (header + resume line).
+
+### 3. Output
+
+```
+Cleared checkpoint "{name}"
+```
+
+### "clear all checkpoints"
+
+Glob `checkpoint-*.md` in memory directory. Delete all matches. Remove the entire `## Active Checkpoints` section (header + bullets + resume line) from MEMORY.md. Output:
+
+```
+Cleared {N} checkpoint(s)
+```
