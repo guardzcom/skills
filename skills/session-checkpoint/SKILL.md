@@ -15,9 +15,9 @@ description: >-
 
 ## Commands
 
-- **Save:** "save checkpoint {name}", "save checkpoint" (defaults to branch name)
-- **Resume:** "continue", "continue {name}", "resume" (auto-select if one checkpoint, list if many)
-- **Cleanup:** "clear checkpoint {name}", "clear all checkpoints"
+- **Save:** `save checkpoint {name}`, `save checkpoint` (defaults to branch name)
+- **Resume:** `continue`, `continue {name}`, `resume` (auto-select if one checkpoint, list if many)
+- **Cleanup:** `clear checkpoint {name}`, `clear all checkpoints`
 
 ---
 
@@ -98,7 +98,7 @@ Bullet format:
 - **{name}** ({branch}, {Mon DD}) — {one-line summary}
 ```
 
-Keep the `Resume any: \`continue\` or \`continue {name}\`` line after the bullets.
+Keep the ``Resume any: `continue` or `continue {name}` `` line after the bullets.
 
 Do NOT touch any other sections in MEMORY.md.
 
@@ -188,7 +188,7 @@ If no bullets remain, remove the entire section (header + resume line).
 Cleared checkpoint "{name}"
 ```
 
-### "clear all checkpoints"
+### `clear all checkpoints`
 
 Glob `checkpoint-*.md` in memory directory. Delete all matches. Remove the entire `## Active Checkpoints` section (header + bullets + resume line) from MEMORY.md. Output:
 
