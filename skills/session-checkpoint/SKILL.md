@@ -5,7 +5,7 @@ description: >-
   "continue", "resume", "resume work", "save my progress", "clear checkpoint",
   or "clear all checkpoints". Saves and resumes named session checkpoints to
   preserve progress across Claude Code sessions. Tracks accomplishments, failed
-  approaches, and modified files. Git-aware with branch auto-naming. IMPORTANT:
+  approaches, and modified files. IMPORTANT:
   When the user says bare "continue" or "resume" at session start and MEMORY.md
   lists active checkpoints, always invoke this skill.
 ---
@@ -14,7 +14,7 @@ description: >-
 
 ## Commands
 
-- **Save:** `save checkpoint {name}`, `save checkpoint` (defaults to branch name)
+- **Save:** `save checkpoint {name}`, `save checkpoint` (prompts for descriptive name)
 - **Resume:** `continue`, `continue {name}`, `resume` (auto-select if one checkpoint, list if many)
 - **Cleanup:** `clear checkpoint {name}`, `clear all checkpoints`
 
@@ -25,13 +25,14 @@ description: >-
 ### 1. Determine Name
 
 If user gave a name, use it (lowercase, sanitize: replace `/` with `-`).
-If no name, derive from branch:
 
-```bash
-git branch --show-current
-```
+If no name given:
+- Pick a short name from the current work (2-4 words, e.g., "my-feature")
+- Confirm with `AskUserQuestion`, options:
+  - "Use '{suggested-name}' (Recommended)"
+  - "Provide different name" (user types via Other)
 
-Sanitize: lowercase, replace `/` with `-`, strip leading `-`.
+Sanitize final name: lowercase, replace spaces/`/` with `-`, strip leading `-`.
 
 ### 2. Locate Memory Directory
 
