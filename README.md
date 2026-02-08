@@ -1,5 +1,7 @@
 # Guardz Skills
 
+> **Early development.** Skills may change significantly between versions. Feedback welcome via [issues](https://github.com/guardzcom/skills/issues).
+
 Open-source agent skills for [Claude Code](https://claude.com/product/claude-code), built by [Guardz](https://guardz.com).
 
 ## Available Skills
