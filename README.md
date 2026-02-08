@@ -6,14 +6,13 @@ Open-source agent skills for [Claude Code](https://claude.com/product/claude-cod
 
 ### Session Checkpoint
 
-Named save points for coding sessions — preserve progress across `/clear` and `/compact`.
+Named save points for coding sessions — preserve progress across sessions.
 
 ```bash
 npx skills add guardzcom/skills --skill session-checkpoint
 ```
 
 - **Memory-native** — checkpoints persist in Claude's auto-memory directory, indexed in MEMORY.md
-- **Context-aware** — recommends `/clear` or `/compact` based on session type
 - **Named and parallel** — multiple checkpoints coexist without conflict
 - **Structured state** — tracks accomplishments, failed approaches, modified files, branch, and plan progress
 - **Zero dependencies** — single Markdown file, no runtime requirements

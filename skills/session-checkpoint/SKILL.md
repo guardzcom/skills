@@ -1,14 +1,13 @@
 ---
 name: session-checkpoint
 description: >-
-  Save and resume named session checkpoints to preserve progress across Claude
-  Code sessions. Tracks accomplishments, failed approaches, and modified files.
-  Git-aware with branch auto-naming. Recommends /clear or /compact based on
-  session type. Triggers on: "save checkpoint", "checkpoint", "continue",
-  "resume", "resume work", "save my progress", "clear checkpoint",
-  "clear all checkpoints". IMPORTANT: When the user says bare "continue" or
-  "resume" at session start and MEMORY.md lists active checkpoints, always
-  invoke this skill.
+  This skill should be used when the user says "save checkpoint", "checkpoint",
+  "continue", "resume", "resume work", "save my progress", "clear checkpoint",
+  or "clear all checkpoints". Saves and resumes named session checkpoints to
+  preserve progress across Claude Code sessions. Tracks accomplishments, failed
+  approaches, and modified files. Git-aware with branch auto-naming. IMPORTANT:
+  When the user says bare "continue" or "resume" at session start and MEMORY.md
+  lists active checkpoints, always invoke this skill.
 ---
 
 # Session Checkpoint
@@ -102,21 +101,15 @@ Keep the ``Resume any: `continue` or `continue {name}` `` line after the bullets
 
 Do NOT touch any other sections in MEMORY.md.
 
-### 7. Smart Output
+### 7. Output
 
-Keep output minimal — this often runs near end of context window. No explanations, just confirmation + question.
-
-Always save the checkpoint file (it's insurance if they `/clear` later). Output one line:
+Keep output minimal — this often runs near end of context window.
 
 ```
-Checkpoint "{name}" saved -> checkpoint-{name}.md
+Checkpoint "{name}" saved. Resume anytime: `continue {name}`
 ```
 
-Then use `AskUserQuestion` with options: "/clear", "/compact", "Done for now". Put the recommended option first:
-- **Plan referenced in context → recommend /clear** (context is disposable)
-- **No plan → recommend /compact** (context has unique value)
-
-Include the ready-to-run command in each option's description (`/compact {focus guidance}`, `/clear` then `continue {name}`). After the user picks, output the exact command prefixed with `Run:`.
+That's it. Don't ask follow-up questions. Don't suggest `/compact` or `/clear` — the user manages their own context window.
 
 ---
 
