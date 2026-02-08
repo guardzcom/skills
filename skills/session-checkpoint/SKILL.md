@@ -50,7 +50,7 @@ git branch --show-current && git status --short | head -10 && date '+%Y-%m-%d %H
 From conversation context, determine:
 - What was accomplished this session
 - What failed or was abandoned (and why)
-- Where work left off (only what was explicitly discussed, don't infer next steps)
+- Where work left off — don't infer next steps, but DO capture all actionable context the next session needs: pending decisions, proposed options, open questions
 - Which files were modified
 
 ### 4. Find Active Plan
