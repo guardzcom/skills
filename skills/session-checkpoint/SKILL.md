@@ -12,6 +12,8 @@ description: >-
 
 # Session Checkpoint
 
+> **CRITICAL: This skill runs near context window limits. Minimize tool calls — no subagents, no file exploration. Use only conversation context. Write files in one shot.**
+
 ## Commands
 
 - **Save:** `save checkpoint {name}`, `save checkpoint` (prompts for descriptive name)
@@ -24,7 +26,7 @@ description: >-
 
 ### 1. Determine Name
 
-If user gave a name, use it (lowercase, sanitize: replace `/` with `-`).
+If user gave a name, use it.
 
 If no name given:
 - Pick a short name from the current work (2-4 words, e.g., "my-feature")
@@ -55,15 +57,7 @@ From conversation context, determine:
 
 ### 4. Find Active Plan
 
-A plan file exists whenever the session involved plan mode or "implement this plan." Look for it in this order:
-
-1. **System prompt:** When plan mode is active, the system prompt contains the plan file path (e.g., `~/.claude/plans/{name}.md`). Check for it.
-2. **Conversation context:** The user's message may reference or paste a plan, or mention "implement the following plan." The plan file path may also appear in an `ExitPlanMode` result or plan-related system message.
-3. **Fallback:** If the session clearly involved executing a multi-step plan but no file path was found, check `~/.claude/plans/` for the most recently modified `.md` file, read its first lines, and confirm it matches the work being done.
-
-If a plan is found, read it to determine step N of M (count total tasks/steps, identify which one work stopped at).
-
-**Default: include the Plan line.** Only omit it if the session genuinely had no plan — a simple task, a one-off question, etc. Err on the side of including it.
+If the system prompt or conversation already references a plan file (`~/.claude/plans/*.md`), note its path and determine step N of M. Otherwise skip. **Do NOT search for or glob plan files.**
 
 ### 5. Write Checkpoint File
 
