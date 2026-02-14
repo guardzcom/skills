@@ -16,7 +16,7 @@ description: >-
 
 ## Commands
 
-- **Save:** `save checkpoint {name}`, `save checkpoint` (prompts for descriptive name)
+- **Save:** `save checkpoint {name}`, `save checkpoint` (auto-picks name from context)
 - **Resume:** `continue`, `continue {name}`, `resume` (auto-select if one checkpoint, list if many)
 - **Cleanup:** `clear checkpoint {name}`, `clear all checkpoints`
 
@@ -29,10 +29,7 @@ description: >-
 If user gave a name, use it.
 
 If no name given:
-- Pick a short name from the current work (2-4 words, e.g., "my-feature")
-- Confirm with `AskUserQuestion`, options:
-  - "Use '{suggested-name}' (Recommended)"
-  - "Provide different name" (user types via Other)
+- Pick a short descriptive name from the current work (2-4 words, e.g., "my-feature") and use it directly — don't ask for confirmation. The user sees the name in the output.
 
 Sanitize final name: lowercase, replace spaces/`/` with `-`, strip leading `-`.
 
@@ -88,6 +85,8 @@ Write `<memory_dir>/checkpoint-{name}.md`:
 Omit the **Plan:** line if no plan file exists.
 
 ### 6. Update MEMORY.md Index
+
+**Always use `Edit` (not `Write`) for MEMORY.md changes** — parallel sessions would clobber each other with `Write`.
 
 Read MEMORY.md. Find the `## Active Checkpoints` section.
 
